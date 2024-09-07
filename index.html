@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>minesweeper v0</title>
+
+    <style>
+        .empty {
+            background-color: DarkGray;
+        }
+
+        .empty:hover {
+            background-color: yellow;
+        }
+
+        .empty--clicked {
+            background-color: LightGrey;
+        }
+
+        .one {
+            background-color: gray;
+        }
+
+        .one:hover {
+            background-color: orangered;
+        }
+
+        .one--clicked {
+            background-color: Crimson;
+        }
+
+        .two {
+            background-color: gray;
+        }
+
+        .two:hover {
+            background-color: HotPink;
+        }
+
+        .two--clicked {
+            background-color: MediumVioletRed;
+        }
+
+        .three {
+            background-color: gray;
+        }
+
+        .three:hover {
+            background-color: MediumOrchid;
+        }
+
+        .three--clicked {
+            background-color: Purple;
+        }
+
+        .four {
+            background-color: gray;
+        }
+
+        .four:hover {
+            background-color: CornflowerBlue;
+        }
+
+        .four--clicked {
+            background-color: DarkSlateBlue;
+        }
+
+        .five {
+            background-color: gray;
+        }
+
+        .five:hover {
+            background-color: Goldenrod;
+        }
+
+        .five--clicked {
+            background-color: DarkGoldenrod;
+        }
+
+        .six {
+            background-color: gray;
+        }
+
+        .six:hover {
+            background-color: chocolate;
+        }
+
+        .six--clicked {
+            background-color: saddlebrown;
+        }
+
+        .seven {
+            background-color: gray;
+        }
+
+        .seven:hover {
+            background-color: black;
+        }
+
+        .seven--clicked {
+            background-color: DarkSlateGray;
+        }
+
+        .eight {
+            background-color: gray;
+        }
+
+        .eight:hover {
+            background-color: black;
+        }
+
+        .eight--clicked {
+            background-color: OldLace;
+        }
+
+        .cursed {
+            background-color: snow;
+        }
+
+        .cursed:hover {
+            background-color: yellowgreen;
+        }
+
+        .cursed--clicked {
+            background-color: maroon;
+        }
+
+        .one--clicked,
+        .two--clicked,
+        .three--clicked,
+        .four--clicked,
+        .five--clicked,
+        .six--clicked,
+        .seven--clicked,
+        .eight--clicked,
+        .cursed--clicked {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            font-family: monospace;
+        }
+
+        html,
+        body,
+        .container {
+            height: 100%;
+        }
+
+        .etchASketch {
+            cursor: pointer;
+            width: 400px;
+            height: 400px;
+            display: none;
+        }
+
+        .empty {
+            color: aliceblue
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="etchASketch">
+        </div>
+
+        <button class="newGame" style="display: none;">
+            restart
+        </button>
+
+        <div class="custom" style="display: none;">
+            <button class="gridLenghtBtn">
+                change number of squares per side
+            </button>
+
+            <button class="bombasNumberBtn">
+                change number of curses in game
+            </button>
+        </div>
+
+        <div class="difficulties">
+            <button class="easy">easy</button>
+            <button class="medium">medium</button>
+            <button class="hard">hard</button>
+        </div>
+    </div>
+
+    <script>
+        const container = document.querySelector(".container");
+        const etchASketch = document.querySelector(".etchASketch");
+        const gridLenghtBtn = document.querySelector(".gridLenghtBtn");
+        const bombasNumberBtn = document.querySelector(".bombasNumberBtn");
+        const newGameBtn = document.querySelector(".newGame");
+
+        const easyGameBtn = document.querySelector(".easy");
+        const mediumGameBtn = document.querySelector(".medium");
+        const hardGameBtn = document.querySelector(".hard");
+
+        const customBtns = document.querySelector(".custom");
+
+        gridLenghtBtn.addEventListener('click', () => {
+            gridLenght = +prompt("what number of squares per side would you like?");
+            updateGrid();
+        });
+
+        bombasNumberBtn.addEventListener('click', () => {
+            const newNumberOfCurses = +prompt("what number of curses");
+            if (newNumberOfCurses > gridLenght * gridLenght) {
+                alert("that's too many curses! >:P")
+            } else {
+                numberOfCurses = newNumberOfCurses;
+                updateGrid();
+            }
+        });
+
+        newGameBtn.addEventListener('click', () => {
+            gridLenght = +prompt(`what number of squares per side would you like? last one was ${gridLenght}`);
+            numberOfCurses = +prompt(`what number of curses would u like? last one was ${numberOfCurses}`);
+            if (numberOfCurses > gridLenght * gridLenght) {
+                alert("that's too many curses! >:P")
+            } else {
+                updateGrid();
+            }
+        });
+
+        easyGameBtn.addEventListener('click', () => {
+            gridLenght = 8;
+            numberOfCurses = 10;
+            updateGrid();
+        });
+
+        mediumGameBtn.addEventListener('click', () => {
+            gridLenght = 16;
+            numberOfCurses = 40;
+            updateGrid();
+        });
+
+        hardGameBtn.addEventListener('click', () => {
+            gridLenght = 20;
+            numberOfCurses = 100;
+            updateGrid();
+        });
+
+        function updateGrid() {
+
+            if (gridLenght > 0) {
+                if (gridLenght > 100) {
+                    alert("that's too much! must be an integer below 100");
+                }
+                //esto debería pasar cuando cancelas, pero cuando cancelas gridLenght = 0, no sé por qué
+                else if (gridLenght == null) {
+                    alert("you've cancelled the change");
+                }
+
+                else {
+                    gridLenght = gridLenght;
+                    createGrid();
+                }
+            } else {
+                alert("grid lenght input must be an integer between 1 and 99");
+            }
+        }
+
+        function createGrid() {
+
+            etchASketch.innerHTML = '';
+
+            if (etchASketch.style.display == "") {
+                etchASketch.style.display = "block";
+                customBtns.style.display = "block";
+            }
+
+            if (newGameBtn.style.display == "block") {
+                newGameBtn.style.display = "none";
+            }
+
+            for (let i = 0; i < gridLenght; i++) {
+
+                /*generamos las rows donde irán los cuadrados, que han de ser flex para que se pongan los cuadrados en linea uno tras otro*/
+                let rowDiv = document.createElement("div");
+                rowDiv.id = `row${i}`;
+                rowDiv.style.display = "flex";
+
+
+                for (let j = 0; j < gridLenght; j++) {
+
+                    /*y creamos los cuadrados, que por defecto serán grises*/
+                    let squareDiv = document.createElement("div");
+                    squareDiv.classList.add("empty");
+                    squareDiv.textContent = "";
+
+                    /*calculamos cómo de grande han de ser*/
+                    const sizeOfSquare = etchASketchWidth = etchASketch.offsetWidth / gridLenght;
+                    squareDiv.style.height = `${sizeOfSquare}px`;
+                    squareDiv.style.width = `${sizeOfSquare}px`;
+
+                    /*y les damos un ID a cada uno (para más tarde hacer algunos bomba)
+                    el id es su numero en la fila */
+                    squareDiv.id = i * gridLenght + j;
+
+                    /*y si se les hace click se ponen verde o rojos, segun esten cursed o no*/
+                    squareDiv.addEventListener('click', () => {
+
+                        if (squareDiv.classList.contains("cursed")) {
+                            squareDiv.classList.remove("cursed");
+                            squareDiv.classList.add("cursed--clicked");
+                            squareDiv.textContent = "🤬"
+                            endGame();
+                        }
+                        else if (squareDiv.classList.contains("empty")) {
+                            squareDiv.classList.remove("empty");
+                            squareDiv.classList.add("empty--clicked");
+                            //revealEmptySquares(squareDiv.id); // Revelar las casillas adyacentes
+                            squareDiv.textContent = ""
+                        } else if (squareDiv.classList.contains("one")) {
+                            squareDiv.classList.remove("one");
+                            squareDiv.classList.add("one--clicked");
+                            squareDiv.textContent = "1";
+                            checkWin();
+                        } else if (squareDiv.classList.contains("two")) {
+                            squareDiv.classList.remove("two");
+                            squareDiv.classList.add("two--clicked");
+                            squareDiv.textContent = "2";
+                            checkWin();
+                        } else if (squareDiv.classList.contains("three")) {
+                            squareDiv.classList.remove("three");
+                            squareDiv.classList.add("three--clicked");
+                            squareDiv.textContent = "3";
+                            checkWin();
+                        } else if (squareDiv.classList.contains("four")) {
+                            squareDiv.classList.remove("four");
+                            squareDiv.classList.add("four--clicked");
+                            squareDiv.textContent = "4";
+                            checkWin();
+                        } else if (squareDiv.classList.contains("five")) {
+                            squareDiv.classList.remove("five");
+                            squareDiv.classList.add("five--clicked");
+                            squareDiv.textContent = "5";
+                            checkWin();
+                        } else if (squareDiv.classList.contains("six")) {
+                            squareDiv.classList.remove("six");
+                            squareDiv.classList.add("six--clicked");
+                            squareDiv.textContent = "6";
+                            checkWin();
+                        } else if (squareDiv.classList.contains("seven")) {
+                            squareDiv.classList.remove("seven");
+                            squareDiv.classList.add("seven--clicked");
+                            squareDiv.textContent = "7";
+                            checkWin();
+                        } else if (squareDiv.classList.contains("eight")) {
+                            squareDiv.classList.remove("eight");
+                            squareDiv.classList.add("eight--clicked");
+                            squareDiv.textContent = "8";
+                            checkWin();
+                        }
+                    });
+
+                    rowDiv.appendChild(squareDiv)
+                }
+                etchASketch.appendChild(rowDiv);
+            }
+            assignCursedSquares(numberOfCurses);  // Ahora asignamos las bombas después de crear la cuadrícula
+        }
+
+        function assignCursedSquares(numCurses) {
+            const cursedSquareSet = new Set();
+            const numberOfCurses = numCurses;
+
+            while (cursedSquareSet.size < numberOfCurses) {
+                const cursedSquareId = randomNumber(0, gridLenght * gridLenght);
+                cursedSquareSet.add(cursedSquareId);  // Esto evita duplicados automáticamente
+            }
+
+            cursedSquareSet.forEach(cursedSquareId => {
+                const cursedSquare = document.getElementById(cursedSquareId);
+                cursedSquare.className = '';
+                cursedSquare.classList.add("cursed");
+                markNearSquares(cursedSquareId);  // Actualizamos los números alrededor
+            });
+        }
+
+        function curseSquares() {
+            const totalSquares = gridLenght * gridLenght;
+            const cursedSquare = randomNumber(0, totalSquares);
+            return cursedSquare;
+        }
+
+        function markNearSquares(cursedSquareId) {
+            // el cuadrado superior e inferior
+            const squareUpId = cursedSquareId - gridLenght;
+            const squareDownId = cursedSquareId + gridLenght;
+
+            // Calculamos los ids adyacentes y verificamos si están en la misma fila
+            const isNotFirstInRow = cursedSquareId % gridLenght !== 0; // no es la primera columna
+            const isNotLastInRow = (cursedSquareId + 1) % gridLenght !== 0; // no es la última columna
+
+            // El resto están ordenados de izquierda a derecha de arriba a abajo, pero verificamos que no crucen filas incorrectamente
+            if (isNotFirstInRow) {
+                changeInto1(squareUpId - 1, cursedSquareId); // diagonal arriba izquierda
+                changeInto1(cursedSquareId - 1, cursedSquareId); // izquierda
+                changeInto1(squareDownId - 1, cursedSquareId); // diagonal abajo izquierda
+            }
+
+            changeInto1(squareUpId, cursedSquareId); // arriba
+            changeInto1(squareDownId, cursedSquareId); // abajo
+
+            if (isNotLastInRow) {
+                changeInto1(squareUpId + 1, cursedSquareId); // diagonal arriba derecha
+                changeInto1(cursedSquareId + 1, cursedSquareId); // derecha
+                changeInto1(squareDownId + 1, cursedSquareId); // diagonal abajo derecha
+            }
+        }
+
+
+        function verifySquare(squareToCheckId) {
+
+            if (squareToCheckId < 0) {
+                return false;
+            }
+            else if (squareToCheckId % gridLenght == 0) {
+                //está en la primera columna
+                return 1;
+            }
+            else if (squareToCheckId % gridLenght == gridLenght - 1) {
+                //está en la última columna
+                return 2;
+            }
+            else if (squareToCheckId % gridLenght == 1) {
+                //está en la segunda columna
+                return 3;
+            }
+            else if (squareToCheckId % gridLenght == gridLenght - 2) {
+                //está en la penúltima columna
+                return 4;
+            }
+
+            else {
+                return false;
+            }
+        }
+
+        function endGame() {
+            // 1. Deshabilitar las casillas de inmediato para evitar más clics
+            const squares = document.querySelectorAll('.etchASketch div div');
+            squares.forEach(square => {
+                square.style.pointerEvents = 'none'; // Desactiva los clics en todas las casillas
+            });
+
+            // 2. Temporizador de suspenso (1 segundo) antes de revelar las bombas
+            setTimeout(() => {
+                // 3. Revelar todas las bombas después del temporizador
+                const cursedSquares = document.querySelectorAll('.cursed');
+                cursedSquares.forEach(cursedSquare => {
+                    cursedSquare.classList.remove("cursed");
+                    cursedSquare.classList.add("cursed--clicked");
+                    cursedSquare.textContent = "🤬";
+                });
+
+                // 4. Mostrar el mensaje de derrota
+                alert("¡Has perdido! 😵");
+
+            }, 1000); // Temporizador de 1000 milisegundos (1 segundo)
+            newGameBtn.style.display = "block";
+        }
+
+        function checkWin() {
+            // Seleccionar todas las casillas que no son ni empty ni cursed
+            const safeSquares = document.querySelectorAll('.etchASketch div div:not(.empty):not(.cursed)');
+
+            // Contar cuántas de esas casillas seguras han sido clicadas
+            const clickedSafeSquares = document.querySelectorAll('.one--clicked, .two--clicked, .three--clicked, .four--clicked, .five--clicked, .six--clicked, .seven--clicked, .eight--clicked');
+            //const clickedSafeAndEmptySquares = document.querySelectorAll('.one--clicked, .two--clicked, .three--clicked, .four--clicked, .five--clicked, .six--clicked, .seven--clicked, .eight--clicked, .empty');
+
+            let squaresLeft = +safeSquares.lenght - +clickedSafeSquares.lenght;
+
+            //console.log(`has clickado ${clickedSafeAndEmptySquares.lenght}, te quedan ${safeSquares.lenght - clickedSafeSquares.lenght} para ganar (no contamos los empties lo siento)`)
+            console.log(`clicked safe squares is ${clickedSafeSquares.length}, te faltan ${safeSquares.length - clickedSafeSquares.length} para ganar`);
+            //console.log(`clicked safe squares with empties is ${clickedSafeAndEmptySquares.length}`);
+
+            // Si el número de casillas seguras clicadas es igual al total de casillas seguras, el jugador gana
+            if (clickedSafeSquares.length === safeSquares.length) {
+                setTimeout(() => {
+                    alert("¡Felicidades! ¡Has ganado! 🎉");
+                    location.reload(); // Reiniciar el juego
+                }, 500);  // Pausa de 0.5 segundos antes de mostrar el mensaje de victoria
+            }
+        }
+
+        function changeInto1(squareId, cursedId) {
+
+            //console.log(`squareToCheckId is ${squareId}`);
+            const checkSquare = verifySquare(squareId);
+            const checkCursed = verifySquare(cursedId);
+            const square = document.getElementById(squareId);
+
+            if (square == null) {
+                //console.log("that square DOES NOT exist");
+                return
+            }
+
+            if (square.classList.contains("cursed")) {
+                //console.log("ITS A CURSED ONE");
+                return
+            } else if (square.classList.contains("one")) {
+                square.classList.remove("one");
+                square.classList.add("two");
+                return
+            } else if (square.classList.contains("two")) {
+                square.classList.remove("two");
+                square.classList.add("three");
+                return
+            } else if (square.classList.contains("three")) {
+                square.classList.remove("three");
+                square.classList.add("four");
+                return
+            } else if (square.classList.contains("four")) {
+                square.classList.remove("four");
+                square.classList.add("five");
+                return
+            } else if (square.classList.contains("five")) {
+                square.classList.remove("five");
+                square.classList.add("six");
+                return
+            } else if (square.classList.contains("six")) {
+                square.classList.remove("six");
+                square.classList.add("seven");
+                return
+            } else if (square.classList.contains("seven")) {
+                square.classList.remove("seven");
+                square.classList.add("eight");
+                return
+            }
+
+            //console.log(`checkSquare is ${checkSquare} && checkCursed is ${checkCursed}`)
+
+            if (checkSquare === 1 || checkSquare === 2) {
+
+                if (checkSquare == checkCursed) {
+                    square.classList.remove("empty");
+                    square.classList.add("one");
+                } else if (checkCursed == 4 && checkSquare == 2) {
+                    square.classList.remove("empty");
+                    square.classList.add("one");
+                } else if (checkCursed == 3 && checkSquare == 1) {
+                    square.classList.remove("empty");
+                    square.classList.add("one");
+                }
+            }
+
+            else if (squareId >= 0) {
+                square.classList.remove("empty");
+                square.classList.add("one");
+            }
+
+        }
+
+        function randomNumber(min, max) {
+            return Math.floor(Math.random() * (max - min) + min);
+        }
+
+        //no funciona esta funcion 
+        /*
+        function revealEmptySquares(squareId) {
+            const square = document.getElementById(squareId);
+
+            // Si la casilla ya ha sido revelada o no es vacía, no hacemos nada
+            if (!square || square.classList.contains("empty--clicked") || !square.classList.contains("empty")) {
+                return;
+            }
+
+            // Marcamos la casilla actual como clicada (revelada)
+            square.classList.remove("empty");
+            square.classList.add("empty--clicked");
+
+            // Array con las 8 direcciones alrededor de la casilla actual
+            const directions = [
+                -1, 1,                          // Izquierda, Derecha
+                -gridLenght, gridLenght,         // Arriba, Abajo
+                -gridLenght - 1, -gridLenght + 1, // Diagonales arriba izquierda/derecha
+                gridLenght - 1, gridLenght + 1   // Diagonales abajo izquierda/derecha
+            ];
+
+            // Recorremos las 8 direcciones
+            directions.forEach(dir => {
+                const newSquareId = parseInt(squareId) + dir;
+                const adjacentSquare = document.getElementById(newSquareId);
+
+                // Verificamos que la nueva casilla está dentro de los límites
+                if (newSquareId >= 0 && newSquareId < gridLenght * gridLenght) {
+
+                    // Evitar saltar de una fila a otra incorrectamente
+                    if ((dir === -1 || dir === 1) && Math.floor(newSquareId / gridLenght) !== Math.floor(squareId / gridLenght)) {
+                        return; // No saltar entre filas
+                    }
+
+                    // Solo revelamos si la casilla es vacía y no es una bomba o ya está revelada
+                    if (adjacentSquare && adjacentSquare.classList.contains("empty") && !adjacentSquare.classList.contains("empty--clicked")) {
+                        revealEmptySquares(newSquareId);  // Llamada recursiva para descubrir las casillas vacías adyacentes
+                    }
+                }
+            });
+        }
+        */
+    </script>
+
+</body>
+
+</html>
